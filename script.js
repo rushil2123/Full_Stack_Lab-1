@@ -9,4 +9,15 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Get the mount point where the directory will be rendered
   const mount = document.getElementById('directory-mount');
+
+  // Create a semantic <section> to contain all department lists
+  const section = document.createElement('section');
+  section.setAttribute('aria-labelledby', 'directory-heading');
+
+  // Add a visually hidden heading for accessibility (screen readers)
+  const srOnlyH = document.createElement('h2');
+  srOnlyH.id = 'directory-heading';
+  srOnlyH.className = 'sr-only';
+  srOnlyH.textContent = 'Departments and employees';
+  section.appendChild(srOnlyH);
 });
