@@ -37,4 +37,10 @@ document.addEventListener('DOMContentLoaded', () => {
       ul.appendChild(li);
     });
 
+    card.appendChild(ul); // Add employee list to card
+    section.appendChild(card); // Add card to section
+  });
+
+  // Add the complete section to the mount point in the DOM
+  mount.appendChild(section);
 });
