@@ -1,3 +1,6 @@
+// script.js
+// This script dynamically renders the employee directory on the page using data from employees.js
+
 document.addEventListener('DOMContentLoaded', () => {
   // Insert the current year into the footer for copyright
   const year = new Date().getFullYear();
