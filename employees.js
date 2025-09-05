@@ -1,3 +1,8 @@
+// employees.js
+// This file defines the employee directory data for Pixell River Financial.
+// The data is structured as an array of department objects, each containing a department name and a list of employee names.
+
+// Expose the employee data as a global variable for use in other scripts (e.g., script.js)
 window.PRF_EMPLOYEE_DATA = [
   {
     department: "Administration", // Department name
