@@ -115,3 +115,12 @@ main {
 .dept-card ul {
   margin: 0.25rem 0 0 1rem;
 }
+
+/* Footer */
+.site-footer {
+  border-top: 1px solid var(--border);
+  padding: 1rem;
+  text-align: center;
+  color: var(--muted);
+  background: #fff;
+}
