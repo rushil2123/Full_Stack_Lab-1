@@ -20,4 +20,21 @@ document.addEventListener('DOMContentLoaded', () => {
   srOnlyH.className = 'sr-only';
   srOnlyH.textContent = 'Departments and employees';
   section.appendChild(srOnlyH);
+
+  // Loop through each department and build a card with employee names
+  data.forEach(group => {
+    const card = document.createElement('article'); // Card for each department
+    card.className = 'dept-card';
+
+    const h4 = document.createElement('h4'); // Department name heading
+    h4.textContent = group.department || 'Unnamed Department';
+    card.appendChild(h4);
+
+    const ul = document.createElement('ul'); // List of employees
+    (group.employees || []).forEach(name => {
+      const li = document.createElement('li'); // Employee name item
+      li.textContent = name;
+      ul.appendChild(li);
+    });
+
 });
