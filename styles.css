@@ -76,3 +76,22 @@ body {
   color: var(--accent);
   font-weight: 600;
 }
+
+/* Main */
+main {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 0 1rem;
+}
+
+.greeting {
+  color: var(--muted);
+  margin-top: -0.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.directory {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1rem;
+}
