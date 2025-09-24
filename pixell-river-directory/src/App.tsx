@@ -5,6 +5,7 @@ import Footer from "./components/Footer";
 import DepartmentCard from "./components/DepartmentCard";
 import employees from "./data/employees.json";
 import type { DepartmentGroup } from "./types";
+import { Routes, Route, Navigate } from "react-router-dom";
 
 function Directory() {
   const data = (employees as DepartmentGroup[]) ?? [];
@@ -30,6 +31,11 @@ export default function App() {
   return (
     <>
       <NavBar />
+      <Routes>
+      <Route path="/" element={<Navigate to="/employees" replace />} />
+        <Route path="/employees" element={<EmployeesPage />} />
+        <Route path="/organization" element={<OrganizationPage />} />
+      </Routes>
       <Directory />
       <Footer />
     </>
