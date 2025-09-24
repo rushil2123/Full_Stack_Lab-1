@@ -25,6 +25,8 @@ body{
 .nav-list{list-style:none; display:flex; gap:1rem; margin:0; padding:0}
 .nav-list a{text-decoration:none; color:var(--text); padding:.25rem .5rem; border-radius:.5rem}
 .nav-list a[aria-current="page"]{color:var(--accent); font-weight:600}
+.nav-list a.active { color: var(--accent); font-weight: 600; }
+
 
 /* Main */
 main{max-width:1000px; margin:2rem auto; padding:0 1rem}
