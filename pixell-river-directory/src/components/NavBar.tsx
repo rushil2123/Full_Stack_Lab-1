@@ -1,4 +1,5 @@
 import logo from "../assets/logo.png";
+import { NavLink } from "react-router-dom";
 
 export default function NavBar() {
   return (
@@ -13,8 +14,16 @@ export default function NavBar() {
 
       <nav aria-label="Primary">
         <ul className="nav-list">
-          <li><a href="#" aria-current="page">Employees</a></li>
-          <li><a href="#">Organization</a></li>
+          <li>
+            <NavLink to="/employees" className={({isActive}) => isActive ? "active" : ""}>
+              Employees
+            </NavLink>
+          </li>
+          <li>
+            <NavLink to="/organization" className={({isActive}) => isActive ? "active" : ""}>
+              Organization
+            </NavLink>
+          </li>
         </ul>
       </nav>
     </header>
