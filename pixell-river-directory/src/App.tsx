@@ -6,8 +6,8 @@ import DepartmentCard from "./components/DepartmentCard";
 import employees from "./data/employees.json";
 import type { DepartmentGroup } from "./types";
 import { Routes, Route, Navigate } from "react-router-dom";
-import EmployeesPage from "./pages/EmployeesPage";
-import OrganizationPage from "./pages/OrganizationPage";
+import EmployeesPage from "../src/pages/EmployeesPage";
+import OrganizationPage from "../src/pages/OrganizationPage";
 
 function Directory() {
   const data = (employees as DepartmentGroup[]) ?? [];
