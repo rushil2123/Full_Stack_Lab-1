@@ -25,7 +25,7 @@ export default function EmployeesPage() {
     <main id="main-content">
       <div className="page-header">
         <h1>Employee Directory</h1>
-        <p className="greeting">Search by name or department.</p>
+        <p className="greeting">Welcome! Browse departments to meet the team.</p>
       </div>
 
       <div className="toolbar">
