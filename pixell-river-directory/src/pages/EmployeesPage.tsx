@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import data from "../data/employees.json";
 import type { DepartmentGroup } from "../types";
 import DepartmentCard from "../components/DepartmentCard";
+import "./EmployeesPage.css";
 
 export default function EmployeesPage() {
   const groups = (data as DepartmentGroup[]) ?? [];

@@ -1,5 +1,6 @@
 import roles from "../data/org.json";
 import type { OrgRole } from "../types";
+import "./OrganizationPage.css";
 
 export default function OrganizationPage() {
   const data = (roles as OrgRole[]) ?? [];
