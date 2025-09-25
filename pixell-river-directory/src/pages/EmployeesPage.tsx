@@ -33,7 +33,7 @@ export default function EmployeesPage() {
         <input
           id="emp-search"
           type="search"
-          placeholder="Type to filter…"
+          placeholder="Search employees or departments"
           value={q}
           onChange={(e) => setQ(e.target.value)}
           className="input"
