@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import data from "../data/employees.json";
 import type { DepartmentGroup } from "../types";
 import DepartmentCard from "../components/DepartmentCard";
@@ -8,10 +8,11 @@ export default function EmployeesPage() {
   const groups = (data as DepartmentGroup[]) ?? [];
   const [q, setQ] = useState("");
 
-  const filtered = useMemo(() => {
-    const query = q.trim().toLowerCase();
-    if (!query) return groups;
-    return groups
+  const query = q.trim().toLowerCase();
+  let filtered: DepartmentGroup[] = groups;
+
+  if (query) {
+    filtered = groups
       .map(g => ({
         department: g.department,
         employees: g.employees.filter(name =>
@@ -20,7 +21,7 @@ export default function EmployeesPage() {
         )
       }))
       .filter(g => g.employees.length > 0);
-  }, [q, groups]);
+  }
 
   return (
     <main id="main-content">
