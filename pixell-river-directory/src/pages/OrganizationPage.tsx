@@ -7,10 +7,8 @@ import type { OrgRole } from "../types";
 export default function OrganizationPage() {
   const form = useEntryForm("role");
 
-  // always read from repo (seed from JSON first run, then localStorage)
   const roles: OrgRole[] = roleRepo.list();
 
-  // simple text filter by title or person
   const [q, setQ] = useState("");
   const s = q.toLowerCase();
   const filtered = roles.filter(
@@ -34,7 +32,6 @@ export default function OrganizationPage() {
         onChange={(e) => setQ(e.target.value)}
       />
 
-      {/* Add role */}
       <section style={{ marginTop: "1rem" }}>
         <h2>Add Role</h2>
 
@@ -56,6 +53,18 @@ export default function OrganizationPage() {
               placeholder="Leave blank if unfilled"
               value={(form.values.kind === "role" && (form.values.person || "")) || ""}
               onChange={(e) => form.change("person", e.target.value)}
+            />
+          </label>
+        </div>
+        
+        <div style={{ marginBottom: 8 }}>
+          <label>
+            Description (optional)
+            <textarea
+              rows={3}
+              placeholder="Add details about responsibilities or scope"
+              value={(form.values.kind === "role" && (form.values.description || "")) || ""}
+              onChange={(e) => form.change("description", e.target.value)}
             />
           </label>
         </div>

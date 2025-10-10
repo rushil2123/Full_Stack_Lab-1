@@ -37,7 +37,8 @@ export const roleRepo = {
   create(title: string, person?: string, description?: string) {
     const cleanTitle = title.trim();
     const cleanPerson = person && person.trim() !== "" ? person.trim() : undefined;
-    const item: OrgRole = { title: cleanTitle, person: cleanPerson, description };
+    const cleanDesc = description && description.trim() !== "" ? description.trim() : undefined;
+    const item: OrgRole = { title: cleanTitle, person: cleanPerson, description: cleanDesc };
     roles = [item, ...roles];
     save(roles);
     return item;

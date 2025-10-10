@@ -19,6 +19,7 @@ export interface EntryFormValuesRole {
   kind: "role";
   title: string;
   person?: string;
+  description?: string;
 }
 
 export type EntryFormValues = EntryFormValuesEmployee | EntryFormValuesRole;

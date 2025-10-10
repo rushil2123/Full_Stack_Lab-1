@@ -19,6 +19,7 @@ export function useEntryForm(kind: "employee" | "role") {
     kind: "role",
     title: "",
     person: "",
+    description: "",
   };
 
   const [values, setValues] = useState<EntryFormValues>(
@@ -47,15 +48,17 @@ export function useEntryForm(kind: "employee" | "role") {
         const v = values as EntryFormValuesRole;
         const t = v.title.trim();
         const p = v.person && v.person.trim() !== "" ? v.person.trim() : undefined;
-        roleRepo.create(t, p);
-        setValues({ ...v, title: "", person: "" });
+        const d = v.description && v.description.trim() !== "" ? v.description.trim() : undefined;
+
+        roleRepo.create(t, p, d);
+        setValues({ ...v, title: "", person: "", description: "" });
       }
       return true;
     } finally {
       setSaving(false);
     }
   }
-  
+
   function departments() {
     return employeeRepo.departments();
   }
