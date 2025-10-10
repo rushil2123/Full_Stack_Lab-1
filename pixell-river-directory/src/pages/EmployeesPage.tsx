@@ -1,58 +1,90 @@
 import { useState } from "react";
-import data from "../data/employees.json";
-import type { DepartmentGroup } from "../types";
-import DepartmentCard from "../components/DepartmentCard";
 import "./EmployeesPage.css";
+import { employeeRepo } from "../repositories/employeeRepo";
+import { useEntryForm } from "../hook/useEntryForm";
+import type { Employee } from "../types";
 
 export default function EmployeesPage() {
-  const groups = (data as DepartmentGroup[]) ?? [];
-  const [q, setQ] = useState("");
+  const [search, setSearch] = useState("");
+  const form = useEntryForm("employee");
 
-  const query = q.trim().toLowerCase();
-  let filtered: DepartmentGroup[] = groups;
+  // small app, so just read the repo each render
+  const allEmployees: Employee[] = employeeRepo.list();
 
-  if (query) {
-    filtered = groups
-      .map(g => ({
-        department: g.department,
-        employees: g.employees.filter(name =>
-          name.toLowerCase().includes(query) ||
-          g.department.toLowerCase().includes(query)
-        )
-      }))
-      .filter(g => g.employees.length > 0);
-  }
+  // basic search by name or department
+  const s = search.toLowerCase();
+  const filtered = allEmployees.filter((e) => {
+    return (
+      e.name.toLowerCase().includes(s) ||
+      e.department.toLowerCase().includes(s)
+    );
+  });
 
   return (
-    <main id="main-content">
-      <div className="page-header">
-        <h1>Employee Directory</h1>
-        <p className="greeting">Welcome! Browse departments to meet the team.</p>
-      </div>
+    <main>
+      <h1>Employees</h1>
+      <p className="greeting">Search and add employees.</p>
 
-      <div className="toolbar">
-        <label className="sr-only" htmlFor="emp-search">Search employees</label>
-        <input
-          id="emp-search"
-          type="search"
-          placeholder="Search employees or departments"
-          value={q}
-          onChange={(e) => setQ(e.target.value)}
-          className="input"
-        />
-      </div>
+      {/* Search */}
+      <label htmlFor="emp-search" className="sr-only">
+        Search employees
+      </label>
+      <input
+        id="emp-search"
+        placeholder="Search by name or department"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
 
-      <section aria-labelledby="directory-heading" className="directory">
-        <h2 id="directory-heading" className="sr-only">Departments and employees</h2>
-        {filtered.map(g => (
-          <DepartmentCard
-            key={g.department}
-            department={g.department}
-            employees={g.employees}
-          />
-        ))}
-        {filtered.length === 0 && <p>No matches found.</p>}
+      {/* Add new employee */}
+      <section style={{ marginTop: "1rem" }}>
+        <h2>Add Employee</h2>
+
+        <div style={{ marginBottom: 8 }}>
+          <label>
+            Name
+            <input
+              value={form.values.name}
+              onChange={(e) => form.change("name", e.target.value)}
+            />
+          </label>
+          {form.errors.name && <div role="alert">{form.errors.name}</div>}
+        </div>
+
+        <div style={{ marginBottom: 8 }}>
+          <label>
+            Department
+            <select
+              value={form.values.department}
+              onChange={(e) => form.change("department", e.target.value)}
+            >
+              {form.departments.map((d) => (
+                <option key={d} value={d}>
+                  {d}
+                </option>
+              ))}
+            </select>
+          </label>
+          {form.errors.department && (
+            <div role="alert">{form.errors.department}</div>
+          )}
+        </div>
+
+        <button onClick={form.submit} disabled={form.saving}>
+          {form.saving ? "Saving..." : "Create Employee"}
+        </button>
       </section>
+
+      {/* List */}
+      <ul style={{ marginTop: "1rem" }}>
+        {filtered.map((e, i) => (
+          <li key={e.id || i}>
+            {e.name} — {e.department}
+          </li>
+        ))}
+      </ul>
+
+      {filtered.length === 0 && <p>No matches found.</p>}
     </main>
   );
 }
