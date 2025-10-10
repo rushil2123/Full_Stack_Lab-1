@@ -21,14 +21,14 @@ export interface Role {
   id: string;
   title: string;
   department: Department;
-  person?: string; // if empty => role not filled
+  person?: string;
 }
 
 export interface EntryFormValues {
   kind: "employee" | "role";
-  name: string;        // for employee: employee name, for role: role title
+  name: string;
   department: Department;
-  person?: string;     // only used when kind === "role"
+  person?: string;
 }
 
 export type EntryFormErrors = {
