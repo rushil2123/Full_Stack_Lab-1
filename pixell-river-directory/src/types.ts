@@ -4,34 +4,28 @@ export interface DepartmentGroup {
 }
 
 export interface OrgRole {
-  title: string;        
-  person: string;       
-  description?: string; 
-}
-
-export type Department = "Finance" | "HR" | "IT" | "Operations" | "Sales";
-
-export interface Employee {
-  id: string;
-  name: string;
-  department: Department;
-}
-
-export interface Role {
-  id: string;
   title: string;
-  department: Department;
+  person?: string;
+  description?: string;
+}
+
+export interface EntryFormValuesEmployee {
+  kind: "employee";
+  name: string;
+  department: string;  
+}
+
+export interface EntryFormValuesRole {
+  kind: "role";
+  title: string;
   person?: string;
 }
 
-export interface EntryFormValues {
-  kind: "employee" | "role";
-  name: string;
-  department: Department;
-  person?: string;
-}
+export type EntryFormValues = EntryFormValuesEmployee | EntryFormValuesRole;
 
 export type EntryFormErrors = {
   name?: string;
   department?: string;
+  title?: string;
+  person?: string;
 };

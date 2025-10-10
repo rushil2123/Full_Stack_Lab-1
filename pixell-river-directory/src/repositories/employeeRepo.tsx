@@ -1,55 +1,57 @@
-import type { Employee, Department } from "../types";
+import type { DepartmentGroup } from "../types";
+import employeesSeed from "../data/employees.json";
 
-const KEY = "prf_employees_v1";
+const EMP_KEY = "prf_employees_groups_v1";
 
-function load(): Employee[] {
+function load(): DepartmentGroup[] {
   try {
-    const raw = localStorage.getItem(KEY);
-    if (raw) return JSON.parse(raw);
+    const raw = localStorage.getItem(EMP_KEY);
+    if (raw) {
+      return JSON.parse(raw);
+    }
   } catch {
-    // ignore parse errors and fall back to seed data
+
   }
-  // seed data (shown on first run)
-  return [
-    { id: "e1", name: "Alice Wong", department: "Finance" },
-    { id: "e2", name: "Dev Patel", department: "IT" },
-  ];
+
+  const seed: DepartmentGroup[] = employeesSeed as DepartmentGroup[];
+  localStorage.setItem(EMP_KEY, JSON.stringify(seed));
+  return seed;
 }
 
-function save(list: Employee[]) {
-  localStorage.setItem(KEY, JSON.stringify(list));
+function save(groups: DepartmentGroup[]) {
+  localStorage.setItem(EMP_KEY, JSON.stringify(groups));
 }
 
-let employees: Employee[] = load();
-
-function makeId(prefix: string) {
-  return prefix + Math.random().toString(36).slice(2, 8);
-}
+let groups: DepartmentGroup[] = load();
 
 export const employeeRepo = {
-  list(): Employee[] {
-    return [...employees]; // return a copy
+  listGroups(): DepartmentGroup[] {
+    return [...groups].map(g => ({ department: g.department, employees: [...g.employees] }));
   },
 
-  create(name: string, department: Department): Employee {
-    const newEmp: Employee = { id: makeId("e_"), name: name.trim(), department };
-    employees = [newEmp, ...employees];
-    save(employees);
-    return newEmp;
+  departments(): string[] {
+    return groups.map(g => g.department);
   },
 
-  // optional helpers if you need them later
-  get(id: string) {
-    return employees.find((e) => e.id === id);
+  addEmployee(department: string, name: string) {
+    const dept = groups.find(g => g.department === department);
+    if (dept) {
+      dept.employees = [name.trim(), ...dept.employees];
+    } else {
+      groups = [{ department, employees: [name.trim()] }, ...groups];
+    }
+    save(groups);
   },
 
-  remove(id: string) {
-    employees = employees.filter((e) => e.id !== id);
-    save(employees);
+  removeEmployee(department: string, name: string) {
+    const dept = groups.find(g => g.department === department);
+    if (!dept) return;
+    dept.employees = dept.employees.filter(n => n !== name);
+    save(groups);
   },
 
   clearAll() {
-    employees = [];
-    save(employees);
+    groups = [];
+    save(groups);
   },
 };

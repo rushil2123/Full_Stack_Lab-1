@@ -1,31 +1,32 @@
 import { useState } from "react";
 import "./EmployeesPage.css";
 import { employeeRepo } from "../repositories/employeeRepo";
-import { useEntryForm } from "../hook/useEntryForm";
-import type { Employee } from "../types";
+import { useEntryForm } from "../hooks/useEntryForm";
+import type { DepartmentGroup } from "../types";
 
 export default function EmployeesPage() {
   const [search, setSearch] = useState("");
   const form = useEntryForm("employee");
 
-  // small app, so just read the repo each render
-  const allEmployees: Employee[] = employeeRepo.list();
+  const groups: DepartmentGroup[] = employeeRepo.listGroups();
 
-  // basic search by name or department
   const s = search.toLowerCase();
-  const filtered = allEmployees.filter((e) => {
-    return (
-      e.name.toLowerCase().includes(s) ||
-      e.department.toLowerCase().includes(s)
-    );
-  });
+  const filtered = groups
+    .map((g) => {
+      const list = g.employees.filter(
+        (n) =>
+          n.toLowerCase().includes(s) ||
+          g.department.toLowerCase().includes(s)
+      );
+      return { department: g.department, employees: list };
+    })
+    .filter((g) => g.employees.length > 0);
 
   return (
     <main>
       <h1>Employees</h1>
-      <p className="greeting">Search and add employees.</p>
+      <p className="greeting">Search employees and add new ones.</p>
 
-      {/* Search */}
       <label htmlFor="emp-search" className="sr-only">
         Search employees
       </label>
@@ -36,7 +37,6 @@ export default function EmployeesPage() {
         onChange={(e) => setSearch(e.target.value)}
       />
 
-      {/* Add new employee */}
       <section style={{ marginTop: "1rem" }}>
         <h2>Add Employee</h2>
 
@@ -44,7 +44,7 @@ export default function EmployeesPage() {
           <label>
             Name
             <input
-              value={form.values.name}
+              value={(form.values.kind === "employee" && form.values.name) || ""}
               onChange={(e) => form.change("name", e.target.value)}
             />
           </label>
@@ -55,10 +55,12 @@ export default function EmployeesPage() {
           <label>
             Department
             <select
-              value={form.values.department}
+              value={
+                (form.values.kind === "employee" && form.values.department) || ""
+              }
               onChange={(e) => form.change("department", e.target.value)}
             >
-              {form.departments.map((d) => (
+              {form.departments().map((d) => (
                 <option key={d} value={d}>
                   {d}
                 </option>
@@ -75,14 +77,18 @@ export default function EmployeesPage() {
         </button>
       </section>
 
-      {/* List */}
-      <ul style={{ marginTop: "1rem" }}>
-        {filtered.map((e, i) => (
-          <li key={e.id || i}>
-            {e.name} — {e.department}
-          </li>
+      <div style={{ marginTop: "1rem" }}>
+        {filtered.map((g) => (
+          <div key={g.department} className="dept-card">
+            <h3>{g.department}</h3>
+            <ul>
+              {g.employees.map((name, i) => (
+                <li key={name + i}>{name}</li>
+              ))}
+            </ul>
+          </div>
         ))}
-      </ul>
+      </div>
 
       {filtered.length === 0 && <p>No matches found.</p>}
     </main>

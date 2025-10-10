@@ -1,37 +1,37 @@
-import { useState } from "react";
 import "./OrganizationPage.css";
-import { roleRepo } from "../repositories/roleRepo";
-import { useEntryForm } from "../hook/useEntryForm";
-import type { Role, Department } from "../types";
+import { useState } from "react";
+import { roleRepo } from "../repositories/orgRepo";
+import { useEntryForm } from "../hooks/useEntryForm";
+import type { OrgRole } from "../types";
 
 export default function OrganizationPage() {
-  const [viewDept, setViewDept] = useState<Department>("Finance");
   const form = useEntryForm("role");
 
-  const allRoles: Role[] = roleRepo.list();
-  const rolesByDept = allRoles.filter((r) => r.department === viewDept);
+  const roles: OrgRole[] = roleRepo.list();
+
+  const [q, setQ] = useState("");
+  const s = q.toLowerCase();
+  const filtered = roles.filter(
+    (r) =>
+      r.title.toLowerCase().includes(s) ||
+      (r.person && r.person.toLowerCase().includes(s))
+  );
 
   return (
     <main>
       <h1>Organization</h1>
-      <p className="greeting">View roles by department and add new roles.</p>
+      <p className="greeting">View roles and add a new role.</p>
 
-      {/* Choose department to view */}
-      <label>
-        Department to view
-        <select
-          value={viewDept}
-          onChange={(e) => setViewDept(e.target.value as Department)}
-        >
-          {form.departments.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
+      <label htmlFor="role-search" className="sr-only">
+        Search roles
       </label>
+      <input
+        id="role-search"
+        placeholder="Search by title or person"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+      />
 
-      {/* Add a role */}
       <section style={{ marginTop: "1rem" }}>
         <h2>Add Role</h2>
 
@@ -39,30 +39,11 @@ export default function OrganizationPage() {
           <label>
             Role Title
             <input
-              value={form.values.name}
-              onChange={(e) => form.change("name", e.target.value)}
+              value={(form.values.kind === "role" && form.values.title) || ""}
+              onChange={(e) => form.change("title", e.target.value)}
             />
           </label>
-          {form.errors.name && <div role="alert">{form.errors.name}</div>}
-        </div>
-
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Department
-            <select
-              value={form.values.department}
-              onChange={(e) => form.change("department", e.target.value)}
-            >
-              {form.departments.map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </label>
-          {form.errors.department && (
-            <div role="alert">{form.errors.department}</div>
-          )}
+          {form.errors.title && <div role="alert">{form.errors.title}</div>}
         </div>
 
         <div style={{ marginBottom: 8 }}>
@@ -70,7 +51,7 @@ export default function OrganizationPage() {
             Person (optional)
             <input
               placeholder="Leave blank if unfilled"
-              value={form.values.person || ""}
+              value={(form.values.kind === "role" && (form.values.person || "")) || ""}
               onChange={(e) => form.change("person", e.target.value)}
             />
           </label>
@@ -81,17 +62,18 @@ export default function OrganizationPage() {
         </button>
       </section>
 
-      {/* Roles list */}
       <ul style={{ marginTop: "1rem" }}>
-        {rolesByDept.map((r, i) => (
-          <li key={r.id || i}>
-            <strong>{r.title}</strong> —{" "}
+        {filtered.map((r, i) => (
+          <li key={r.title + (r.person || "") + i}>
+            <strong>{r.title}</strong>
+            {" — "}
             {r.person ? `Filled by ${r.person}` : "Unfilled"}
+            {r.description ? ` — ${r.description}` : ""}
           </li>
         ))}
       </ul>
 
-      {rolesByDept.length === 0 && <p>No roles in this department.</p>}
+      {filtered.length === 0 && <p>No roles match.</p>}
     </main>
   );
 }
