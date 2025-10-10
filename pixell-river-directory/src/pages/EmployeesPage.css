@@ -32,3 +32,9 @@
   border: 1px solid var(--border);
   border-radius: .5rem;
 }
+
+.error {
+  color: #d32f2f; /* red */
+  font-size: 0.95rem;
+  margin-top: 4px;
+}

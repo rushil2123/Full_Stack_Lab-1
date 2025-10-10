@@ -43,7 +43,7 @@ export default function OrganizationPage() {
               onChange={(e) => form.change("title", e.target.value)}
             />
           </label>
-          {form.errors.title && <div role="alert">{form.errors.title}</div>}
+          {form.errors.title && <div className="error" role="alert">{form.errors.title}</div>}
         </div>
 
         <div style={{ marginBottom: 8 }}>
@@ -56,7 +56,7 @@ export default function OrganizationPage() {
             />
           </label>
         </div>
-        
+
         <div style={{ marginBottom: 8 }}>
           <label>
             Description (optional)

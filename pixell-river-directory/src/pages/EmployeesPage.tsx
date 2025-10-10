@@ -74,7 +74,7 @@ export default function EmployeesPage() {
             </select>
           </label>
           {form.errors.department && (
-            <div role="alert">{form.errors.department}</div>
+            <div className="error" role="alert">{form.errors.department}</div>
           )}
         </div>
 
