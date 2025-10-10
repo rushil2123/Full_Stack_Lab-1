@@ -7,8 +7,10 @@ import type { OrgRole } from "../types";
 export default function OrganizationPage() {
   const form = useEntryForm("role");
 
+  // always read from repo (seed from JSON first run, then localStorage)
   const roles: OrgRole[] = roleRepo.list();
 
+  // simple text filter by title or person
   const [q, setQ] = useState("");
   const s = q.toLowerCase();
   const filtered = roles.filter(
@@ -32,6 +34,7 @@ export default function OrganizationPage() {
         onChange={(e) => setQ(e.target.value)}
       />
 
+      {/* Add role */}
       <section style={{ marginTop: "1rem" }}>
         <h2>Add Role</h2>
 
@@ -62,16 +65,23 @@ export default function OrganizationPage() {
         </button>
       </section>
 
-      <ul style={{ marginTop: "1rem" }}>
+      <div style={{ marginTop: "1rem" }}>
         {filtered.map((r, i) => (
-          <li key={r.title + (r.person || "") + i}>
-            <strong>{r.title}</strong>
-            {" — "}
-            {r.person ? `Filled by ${r.person}` : "Unfilled"}
-            {r.description ? ` — ${r.description}` : ""}
-          </li>
+          <details className="role-details" key={r.title + (r.person || "") + i}>
+            <summary>
+              <strong>{r.title}</strong>
+              {" — "}
+              {r.person ? `${r.person}` : "Unfilled"}
+            </summary>
+            {(r.description || r.person) && (
+              <div className="role-body">
+                {r.description ? <p>{r.description}</p> : null}
+                {r.person ? <p><em>Assigned:</em> {r.person}</p> : null}
+              </div>
+            )}
+          </details>
         ))}
-      </ul>
+      </div>
 
       {filtered.length === 0 && <p>No roles match.</p>}
     </main>
