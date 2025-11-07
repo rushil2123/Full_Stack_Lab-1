@@ -2,7 +2,9 @@
   "name": "pixell-river-backend",
   "version": "1.0.0",
   "scripts": {
-    "prisma": { "seed": "ts-node prisma/seed.ts" },
+    "prisma": {
+      "seed": "ts-node prisma/seed.ts"
+    },
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc -p .",
     "start": "node dist/server.js",
@@ -16,7 +18,7 @@
     "dotenv": "^16.4.5",
     "express": "^4.19.2",
     "helmet": "^7.1.0",
-    "zod": "^3.23.8"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
