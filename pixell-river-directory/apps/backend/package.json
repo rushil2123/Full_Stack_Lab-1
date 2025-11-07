@@ -2,6 +2,7 @@
   "name": "pixell-river-backend",
   "version": "1.0.0",
   "scripts": {
+    "prisma": { "seed": "ts-node prisma/seed.ts" },
     "dev": "ts-node-dev --respawn --transpile-only src/server.ts",
     "build": "tsc -p .",
     "start": "node dist/server.js",
