@@ -1,12 +1,16 @@
 export interface DepartmentGroup {
+  id: number;
   department: string;
   employees: string[];
+  createdAt: string;
 }
 
 export interface OrgRole {
+  id: number;
   title: string;
   person?: string;
   description?: string;
+  createdAt: string;
 }
 
 export interface EntryFormValuesEmployee {

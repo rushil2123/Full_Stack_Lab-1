@@ -1,103 +1,54 @@
-import { useState } from "react";
-import "./EmployeesPage.css";
-import { employeeRepo } from "../repositories/employeeRepo";
-import { useEntryForm } from "../hooks/useEntryForm";
+import { useEffect, useState } from "react";
+import * as employeesRepo from "../repositories/employeeRepo";
 import type { DepartmentGroup } from "../types";
 
 export default function EmployeesPage() {
+  const [rows, setRows] = useState<DepartmentGroup[]>([]);
   const [search, setSearch] = useState("");
-  const form = useEntryForm("employee");
 
-  // read from repo (seed from JSON on first run, then localStorage)
-  const groups: DepartmentGroup[] = employeeRepo.listGroups();
+  const refresh = async (term?: string) => {
+    const data = await employeesRepo.listEmployees(term);
+    setRows(data);
+  };
 
-  const s = search.toLowerCase();
-  const filtered = groups
-    .map((g) => {
-      const list = g.employees.filter(
-        (n) =>
-          n.toLowerCase().includes(s) ||
-          g.department.toLowerCase().includes(s)
-      );
-      return { department: g.department, employees: list };
-    })
-    .filter((g) => g.employees.length > 0);
+  useEffect(() => { refresh(); }, []);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const name = String(form.get("name") || "").trim();
+    const department = String(form.get("department") || "").trim();
+    if (!name || !department) return;
+
+    await employeesRepo.addEmployee({ name, department });
+    (e.currentTarget as HTMLFormElement).reset();
+    await refresh(search);
+  };
+
+  const onSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearch(term);
+    await refresh(term);
+  };
 
   return (
-    <main>
-      <h1>Employees</h1>
-      <p className="greeting">Search employees and add new ones.</p>
+    <>
+      <input
+        placeholder="Search employees or departments"
+        value={search}
+        onChange={onSearchChange}
+      />
+      <form onSubmit={onSubmit}>
+        <input name="name" placeholder="Full name" />
+        <input name="department" placeholder="Department" />
+        <button type="submit">Add</button>
+      </form>
 
-      {/* Search toolbar styled by .toolbar and .input */}
-      <div className="toolbar">
-        <label htmlFor="emp-search" className="sr-only">
-          Search employees
-        </label>
-        <input
-          id="emp-search"
-          className="input"
-          placeholder="Search by name or department"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-        />
-      </div>
-
-      {/* Add employee */}
-      <section style={{ marginTop: "1rem" }}>
-        <h2>Add Employee</h2>
-
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Name
-            <input
-              value={(form.values.kind === "employee" && form.values.name) || ""}
-              onChange={(e) => form.change("name", e.target.value)}
-            />
-          </label>
-          {form.errors.name && <div role="alert">{form.errors.name}</div>}
-        </div>
-
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Department
-            <select
-              value={
-                (form.values.kind === "employee" && form.values.department) || ""
-              }
-              onChange={(e) => form.change("department", e.target.value)}
-            >
-              {form.departments().map((d) => (
-                <option key={d} value={d}>
-                  {d}
-                </option>
-              ))}
-            </select>
-          </label>
-          {form.errors.department && (
-            <div className="error" role="alert">{form.errors.department}</div>
-          )}
-        </div>
-
-        <button onClick={form.submit} disabled={form.saving}>
-          {form.saving ? "Saving..." : "Create Employee"}
-        </button>
-      </section>
-
-      {/* Card grid styled by .directory and .dept-card */}
-      <div className="directory" style={{ marginTop: "1rem" }}>
-        {filtered.map((g) => (
-          <div key={g.department} className="dept-card">
-            <h4>{g.department}</h4>
-            <ul>
-              {g.employees.map((name, i) => (
-                <li key={name + i}>{name}</li>
-              ))}
-            </ul>
-          </div>
+      <ul>
+        {rows.map((r) => (
+          <li key={`${r.department}:${r.employees}`}>{r.employees} — {r.department}</li>
         ))}
-      </div>
-
-      {filtered.length === 0 && <p>No matches found.</p>}
-    </main>
+      </ul>
+    </>
   );
 }

@@ -1,98 +1,62 @@
-import "./OrganizationPage.css";
-import { useState } from "react";
-import { roleRepo } from "../repositories/orgRepo";
-import { useEntryForm } from "../hooks/useEntryForm";
+import { useEffect, useState } from "react";
+import * as rolesRepo from "../repositories/orgRepo";
 import type { OrgRole } from "../types";
 
 export default function OrganizationPage() {
-  const form = useEntryForm("role");
+  const [rows, setRows] = useState<OrgRole[]>([]);
+  const [search, setSearch] = useState("");
 
-  const roles: OrgRole[] = roleRepo.list();
+  const refresh = async (term?: string) => {
+    const data = await rolesRepo.listRoles(term);
+    setRows(data);
+  };
 
-  const [q, setQ] = useState("");
-  const s = q.toLowerCase();
-  const filtered = roles.filter(
-    (r) =>
-      r.title.toLowerCase().includes(s) ||
-      (r.person && r.person.toLowerCase().includes(s))
-  );
+  useEffect(() => { refresh(); }, []);
+
+  const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    const form = new FormData(e.currentTarget);
+    const title = String(form.get("title") || "").trim();
+    const person = String(form.get("person") || "").trim() || undefined;
+    const description = String(form.get("description") || "").trim() || undefined;
+    if (!title) return;
+
+    // Optional UX rule from Lab 3
+    // if (await rolesRepo.isTitleFilled(title)) { alert("Title already filled"); return; }
+
+    await rolesRepo.addRole({ title, person, description });
+    (e.currentTarget as HTMLFormElement).reset();
+    await refresh(search);
+  };
+
+  const onSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const term = e.target.value;
+    setSearch(term);
+    await refresh(term);
+  };
 
   return (
-    <main>
-      <h1>Organization</h1>
-      <p className="greeting">View roles and add a new role.</p>
-
-      <label htmlFor="role-search" className="sr-only">
-        Search roles
-      </label>
+    <>
       <input
-        id="role-search"
-        placeholder="Search by title or person"
-        value={q}
-        onChange={(e) => setQ(e.target.value)}
+        placeholder="Search roles, people, or descriptions"
+        value={search}
+        onChange={onSearchChange}
       />
+      <form onSubmit={onSubmit}>
+        <input name="title" placeholder="Title (e.g., CTO)" />
+        <input name="person" placeholder="Person (optional)" />
+        <input name="description" placeholder="Description (optional)" />
+        <button type="submit">Add</button>
+      </form>
 
-      <section style={{ marginTop: "1rem" }}>
-        <h2>Add Role</h2>
-
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Role Title
-            <input
-              value={(form.values.kind === "role" && form.values.title) || ""}
-              onChange={(e) => form.change("title", e.target.value)}
-            />
-          </label>
-          {form.errors.title && <div className="error" role="alert">{form.errors.title}</div>}
-        </div>
-
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Person (optional)
-            <input
-              placeholder="Leave blank if unfilled"
-              value={(form.values.kind === "role" && (form.values.person || "")) || ""}
-              onChange={(e) => form.change("person", e.target.value)}
-            />
-          </label>
-        </div>
-
-        <div style={{ marginBottom: 8 }}>
-          <label>
-            Description (optional)
-            <textarea
-              rows={3}
-              placeholder="Add details about responsibilities or scope"
-              value={(form.values.kind === "role" && (form.values.description || "")) || ""}
-              onChange={(e) => form.change("description", e.target.value)}
-            />
-          </label>
-        </div>
-
-        <button onClick={form.submit} disabled={form.saving}>
-          {form.saving ? "Saving..." : "Create Role"}
-        </button>
-      </section>
-
-      <div style={{ marginTop: "1rem" }}>
-        {filtered.map((r, i) => (
-          <details className="role-details" key={r.title + (r.person || "") + i}>
-            <summary>
-              <strong>{r.title}</strong>
-              {" — "}
-              {r.person ? `${r.person}` : "Unfilled"}
-            </summary>
-            {(r.description || r.person) && (
-              <div className="role-body">
-                {r.description ? <p>{r.description}</p> : null}
-                {r.person ? <p><em>Assigned:</em> {r.person}</p> : null}
-              </div>
-            )}
-          </details>
+      <ul>
+        {rows.map((r) => (
+          <li key={r.id ?? r.title}>
+            <strong>{r.title}</strong>
+            {r.person ? ` — ${r.person}` : ""} {r.description ? ` — ${r.description}` : ""}
+          </li>
         ))}
-      </div>
-
-      {filtered.length === 0 && <p>No roles match.</p>}
-    </main>
+      </ul>
+    </>
   );
 }

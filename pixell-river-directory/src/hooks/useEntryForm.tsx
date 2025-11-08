@@ -1,67 +1,79 @@
 import { useState } from "react";
-import type {
-  EntryFormValues,
-  EntryFormValuesEmployee,
-  EntryFormValuesRole,
-  EntryFormErrors,
-} from "../types";
-import { validStaffService } from "../services/validstaffService";
-import { employeeRepo } from "../repositories/employeeRepo";
-import { roleRepo } from "../repositories/orgRepo";
+import * as employeeRepo from "../repositories/employeeRepo";
+import * as orgRepo from "../repositories/orgRepo";
+import { validateEmployee, validateRoleAsync } from "../services/validstaffService";
 
-export function useEntryForm(kind: "employee" | "role") {
-  const defaultEmp: EntryFormValuesEmployee = {
-    kind: "employee",
-    name: "",
-    department: employeeRepo.departments()[0] || "",
-  };
-  const defaultRole: EntryFormValuesRole = {
-    kind: "role",
-    title: "",
-    person: "",
-    description: "",
-  };
+type FormType = "employee" | "role";
 
-  const [values, setValues] = useState<EntryFormValues>(
-    kind === "employee" ? defaultEmp : defaultRole
-  );
-  const [errors, setErrors] = useState<EntryFormErrors>({});
+interface UseEntryFormReturn<T> {
+  values: T;
+  errors: Record<string, string>;
+  saving: boolean;
+  handleChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  handleSubmit: (e: React.FormEvent<HTMLFormElement>) => Promise<void>;
+  resetForm: () => void;
+}
+
+/**
+ * Shared hook for both Employee and Role forms
+ */
+export function useEntryForm<T extends Record<string, any>>(type: FormType): UseEntryFormReturn<T> {
+  const [values, setValues] = useState<any>({});
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
 
-  function change(field: string, value: string) {
-    setValues({ ...(values as any), [field]: value } as EntryFormValues);
-    setErrors({ ...errors, [field]: undefined });
-  }
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setValues((prev: any) => ({ ...prev, [name]: value }));
+  };
 
-  function submit() {
-    const result = validStaffService.validate(values);
-    setErrors(result.errors);
-    if (!result.ok) return false;
+  const resetForm = () => {
+    setValues({});
+    setErrors({});
+  };
 
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
     setSaving(true);
-    try {
-      if (values.kind === "employee") {
-        const v = values as EntryFormValuesEmployee;
-        employeeRepo.addEmployee(v.department, v.name.trim());
-        setValues({ ...v, name: "" });
-      } else {
-        const v = values as EntryFormValuesRole;
-        const t = v.title.trim();
-        const p = v.person && v.person.trim() !== "" ? v.person.trim() : undefined;
-        const d = v.description && v.description.trim() !== "" ? v.description.trim() : undefined;
 
-        roleRepo.create(t, p, d);
-        setValues({ ...v, title: "", person: "", description: "" });
+    try {
+      if (type === "employee") {
+        const err = await validateEmployee(values);
+        if (Object.keys(err).length) {
+          setErrors(err);
+          setSaving(false);
+          return;
+        }
+
+        await employeeRepo.addEmployee({
+          name: values.name.trim(),
+          department: values.department.trim()
+        });
       }
-      return true;
+
+      if (type === "role") {
+        const err = await validateRoleAsync(values);
+        if (Object.keys(err).length) {
+          setErrors(err);
+          setSaving(false);
+          return;
+        }
+
+        await orgRepo.addRole({
+          title: values.title.trim(),
+          person: values.person?.trim() || undefined,
+          description: values.description?.trim() || undefined
+        });
+      }
+
+      resetForm();
+    } catch (e: any) {
+      console.error(e);
+      alert(e.message || "Failed to save");
     } finally {
       setSaving(false);
     }
-  }
+  };
 
-  function departments() {
-    return employeeRepo.departments();
-  }
-
-  return { values, errors, saving, change, submit, departments };
+  return { values, errors, saving, handleChange, handleSubmit, resetForm };
 }
