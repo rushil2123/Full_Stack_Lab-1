@@ -51,7 +51,7 @@ export default function OrganizationPage() {
 
       <ul>
         {rows.map((r) => (
-          <li key={r.id ?? r.title}>
+          <li key={r.id}>
             <strong>{r.title}</strong>
             {r.person ? ` — ${r.person}` : ""} {r.description ? ` — ${r.description}` : ""}
           </li>

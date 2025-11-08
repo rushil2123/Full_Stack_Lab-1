@@ -1,14 +1,15 @@
+// src/pages/EmployeesPage.tsx
 import { useEffect, useState } from "react";
 import * as employeesRepo from "../repositories/employeeRepo";
 import type { DepartmentGroup } from "../types";
 
 export default function EmployeesPage() {
-  const [rows, setRows] = useState<DepartmentGroup[]>([]);
+  const [groups, setGroups] = useState<DepartmentGroup[]>([]);
   const [search, setSearch] = useState("");
 
   const refresh = async (term?: string) => {
     const data = await employeesRepo.listEmployees(term);
-    setRows(data);
+    setGroups(data);
   };
 
   useEffect(() => { refresh(); }, []);
@@ -25,30 +26,34 @@ export default function EmployeesPage() {
     await refresh(search);
   };
 
-  const onSearchChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const term = e.target.value;
-    setSearch(term);
-    await refresh(term);
-  };
-
   return (
     <>
       <input
         placeholder="Search employees or departments"
         value={search}
-        onChange={onSearchChange}
+        onChange={async (e) => {
+          const term = e.target.value;
+          setSearch(term);
+          await refresh(term);
+        }}
       />
+
       <form onSubmit={onSubmit}>
         <input name="name" placeholder="Full name" />
         <input name="department" placeholder="Department" />
         <button type="submit">Add</button>
       </form>
 
-      <ul>
-        {rows.map((r) => (
-          <li key={`${r.department}:${r.employees}`}>{r.employees} — {r.department}</li>
-        ))}
-      </ul>
+      {groups.map(g => (
+        <section key={g.id}>
+          <h3>{g.department}</h3>
+          <ul>
+            {g.employees.map((n, i) => (
+              <li key={`${g.id}:${i}`}>{n}</li>
+            ))}
+          </ul>
+        </section>
+      ))}
     </>
   );
 }
