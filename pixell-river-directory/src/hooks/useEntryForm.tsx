@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import * as employeeRepo from "../repositories/employeeRepo";
 import * as orgRepo from "../repositories/orgRepo";
 import { validateEmployee, validateRoleAsync } from "../services/validstaffService";
@@ -17,7 +18,11 @@ interface UseEntryFormReturn<T> {
 /**
  * Shared hook for both Employee and Role forms
  */
-export function useEntryForm<T extends Record<string, any>>(type: FormType): UseEntryFormReturn<T> {
+export function useEntryForm<T extends Record<string, any>>(
+  type: FormType
+): UseEntryFormReturn<T> {
+  const { getToken } = useAuth();
+
   const [values, setValues] = useState<any>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [saving, setSaving] = useState(false);
@@ -35,34 +40,40 @@ export function useEntryForm<T extends Record<string, any>>(type: FormType): Use
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setSaving(true);
+    setErrors({});
 
     try {
+      const token = await getToken();
+      if (!token) {
+        throw new Error("Not authenticated");
+      }
+
       if (type === "employee") {
-        const err = await validateEmployee(values);
+        const err = validateEmployee(values);
         if (Object.keys(err).length) {
           setErrors(err);
           setSaving(false);
           return;
         }
 
-        await employeeRepo.addEmployee({
+        await employeeRepo.addEmployee(token, {
           name: values.name.trim(),
-          department: values.department.trim()
+          department: values.department.trim(),
         });
       }
 
       if (type === "role") {
-        const err = await validateRoleAsync(values);
+        const err = await validateRoleAsync(values, token);
         if (Object.keys(err).length) {
           setErrors(err);
           setSaving(false);
           return;
         }
 
-        await orgRepo.addRole({
+        await orgRepo.addRole(token, {
           title: values.title.trim(),
           person: values.person?.trim() || undefined,
-          description: values.description?.trim() || undefined
+          description: values.description?.trim() || undefined,
         });
       }
 
