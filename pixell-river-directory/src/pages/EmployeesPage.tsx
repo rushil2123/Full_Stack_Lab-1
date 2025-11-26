@@ -1,23 +1,26 @@
-// src/pages/EmployeesPage.tsx
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import * as employeesRepo from "../repositories/employeeRepo";
 import type { DepartmentGroup } from "../types";
-import "../pages/EmployeesPage.css";
+import "../pages/EmployeesPage.css"
 
 export default function EmployeesPage() {
+  const { getToken } = useAuth();
   const [groups, setGroups] = useState<DepartmentGroup[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
-
-  // Keep track of the last added employee so we can flash it briefly
-  const lastAddedRef = useRef<{ name: string; department: string } | null>(null);
+  const lastAddedRef = useRef<{ name: string; department: string } | null>(
+    null
+  );
 
   const refresh = async (term?: string) => {
     setLoading(true);
     setErr(null);
     try {
-      const data = await employeesRepo.listEmployees(term);
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+      const data = await employeesRepo.listEmployees(token, term);
       setGroups(data);
     } catch (e: any) {
       setErr(e?.message || "Failed to load employees");
@@ -26,14 +29,12 @@ export default function EmployeesPage() {
     }
   };
 
-  // Mount: load initial data
   useEffect(() => {
     (async () => {
       await refresh();
     })();
   }, []);
 
-  // Simple debounce for search (optional but nicer UX)
   const debouncedSearch = useMemo(() => {
     let t: number | undefined;
     return (term: string) => {
@@ -52,19 +53,17 @@ export default function EmployeesPage() {
     if (!name || !department) return;
 
     try {
-      await employeesRepo.addEmployee({ name, department });
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+
+      await employeesRepo.addEmployee(token, { name, department });
       (e.currentTarget as HTMLFormElement).reset();
 
-      // Clear any active filter so the new item is visible,
-      // then refresh the full, unfiltered list
       setSearch("");
       lastAddedRef.current = { name, department };
       await refresh();
-
-      // Clear the flash after a short time
       window.setTimeout(() => {
         lastAddedRef.current = null;
-        // No need to force a render; the flash animation is visual only
       }, 1500);
     } catch (error: any) {
       alert(error?.message || "Failed to add employee");

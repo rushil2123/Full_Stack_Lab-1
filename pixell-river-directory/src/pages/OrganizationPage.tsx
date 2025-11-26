@@ -1,21 +1,29 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+// src/pages/OrganizationPage.tsx
+import { useEffect, useRef, useState } from "react";
+import { useAuth } from "@clerk/clerk-react";
 import * as orgRepo from "../repositories/orgRepo";
 import type { OrgRole } from "../types";
 
 export default function OrganizationPage() {
+  const { getToken } = useAuth();
+
   const [roles, setRoles] = useState<OrgRole[]>([]);
   const [search, setSearch] = useState("");
   const [loading, setLoading] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 
-  // Store last added role for flash effect
+  // For flash effect on newly added role
   const lastAddedRef = useRef<{ title: string } | null>(null);
 
   const refresh = async (term?: string) => {
     setLoading(true);
     setErr(null);
+
     try {
-      const data = await orgRepo.listRoles(term);
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+
+      const data = await orgRepo.listRoles(token, term);
       setRoles(data);
     } catch (e: any) {
       setErr(e?.message || "Failed to load organization roles");
@@ -28,20 +36,13 @@ export default function OrganizationPage() {
     (async () => {
       await refresh();
     })();
-  }, []);
-
-  // Debounced search to avoid constant reloads while typing
-  const debouncedSearch = useMemo(() => {
-    let timeout: number | undefined;
-    return (term: string) => {
-      window.clearTimeout(timeout);
-      timeout = window.setTimeout(() => refresh(term), 300);
-    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const form = new FormData(e.currentTarget);
+
     const title = String(form.get("title") || "").trim();
     const person = String(form.get("person") || "").trim();
     const description = String(form.get("description") || "").trim();
@@ -49,21 +50,32 @@ export default function OrganizationPage() {
     if (!title) return;
 
     try {
-      await orgRepo.addRole({ title, person, description });
+      const token = await getToken();
+      if (!token) throw new Error("Not authenticated");
+
+      await orgRepo.addRole(token, { title, person, description });
       (e.currentTarget as HTMLFormElement).reset();
 
-      // Reset search to show full list and trigger live refresh
+      // Clear search so the new role is visible and refresh list
       setSearch("");
       lastAddedRef.current = { title };
       await refresh();
 
-      // Remove flash marker after 1.5s
+      // Clear flash marker after a bit
       window.setTimeout(() => {
         lastAddedRef.current = null;
       }, 1500);
     } catch (error: any) {
       alert(error?.message || "Failed to add role");
     }
+  };
+
+  const handleSearchChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const term = e.target.value;
+    setSearch(term);
+    await refresh(term);
   };
 
   return (
@@ -74,11 +86,7 @@ export default function OrganizationPage() {
           className="input"
           placeholder="Search by title or person"
           value={search}
-          onChange={(e) => {
-            const term = e.target.value;
-            setSearch(term);
-            debouncedSearch(term);
-          }}
+          onChange={handleSearchChange}
         />
       </div>
 
@@ -95,7 +103,7 @@ export default function OrganizationPage() {
       {err && <p className="error">{err}</p>}
       {loading && <p>Loading...</p>}
 
-      {/* Roles grid (matches EmployeesPage layout) */}
+      {/* Roles grid */}
       <div className="directory roles-grid">
         {roles.map((r) => {
           const shouldFlash =
